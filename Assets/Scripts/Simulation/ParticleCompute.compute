@@ -1,0 +1,70 @@
+#pragma kernel CSMain
+
+struct ParticleStruct
+{
+    float2 position;
+    float2 velocity;
+    int type;
+    int clusterId;
+};
+
+StructuredBuffer<float> Rules;
+RWStructuredBuffer<ParticleStruct> particles;
+
+int particleCount;
+int numTypes;
+float deltaTime;
+float interactionRadius;
+float attractionStrength;
+float maxSpeed;
+float simulationSpeed;
+
+
+float GetInteraction(int a, int b, float distance)
+{
+    if (distance < 0.5)
+    {
+        return -2.0;
+    }
+    if (distance > interactionRadius)
+    {
+        return 0.0;
+    }
+    return Rules[a * numTypes + b];
+}
+
+[numthreads(256,1,1)]
+void CSMain (uint id : SV_DispatchThreadID)
+{
+    if (id >= particleCount) return;
+
+    ParticleStruct p = particles[id];
+
+    float2 force = float2(0, 0);
+
+    for (int i = 0; i < particleCount; i++)
+    {
+        if (i == id) continue;
+        ParticleStruct other = particles[i];
+
+        float2 dir = other.position - p.position;
+        float dist = length(dir);
+
+        if (dist < interactionRadius)
+        {
+            float interaction = GetInteraction(p.type, other.type, dist);
+
+            force += normalize(dir) * interaction * attractionStrength;
+        }
+    }
+
+    p.velocity += force * deltaTime * simulationSpeed;
+
+    if (length(p.velocity) > maxSpeed)
+    {
+        p.velocity = normalize(p.velocity) * maxSpeed;
+    }
+    p.position += p.velocity * deltaTime * simulationSpeed;
+
+    particles[id] = p;
+}

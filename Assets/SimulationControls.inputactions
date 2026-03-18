@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "name": "SimulationControls",
+    "maps": [
+        {
+            "name": "Simulation",
+            "id": "2fab0e7b-4b3c-468f-b2a5-6ea55cf57b6a",
+            "actions": [
+                {
+                    "name": "Restart",
+                    "type": "Button",
+                    "id": "bfa8f775-1b67-401b-a342-bbe004c308f4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "33d862a1-4ea8-4162-83d6-e47402a1be12",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
