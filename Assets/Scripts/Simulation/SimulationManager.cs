@@ -6,20 +6,19 @@ public class SimulationManager : MonoBehaviour
     [SerializeField]
     private ParticleRenderer particleRenderer;
 
-    public ComputeShader computeShader;
+    [SerializeField]
+    private ComputeShader computeShader;
 
-    public float worldSize = 10.0f;
+    private SimulationParameters simulationParameters;
 
-    public SimulationParameters simulationParameters;
+    private ComputeBuffer particleBuffer;
+    private ComputeBuffer rulesBuffer;
 
-    ComputeBuffer particleBuffer;
-    ComputeBuffer rulesBuffer;
-
-    ParticleStruct[] particles;
+    private ParticleStruct[] particles;
 
     public const int maxNumTypes = 10;
 
-    int kernel;
+    private int kernel;
 
     private float simulationSpeed = 1f;
 
@@ -58,7 +57,7 @@ public class SimulationManager : MonoBehaviour
         particles = new ParticleStruct[simulationParameters.numParticles];
         for (int i = 0; i < simulationParameters.numParticles; i++)
         {
-            particles[i].position = Random.insideUnitCircle * worldSize;
+            particles[i].position = Random.insideUnitCircle * simulationParameters.worldSize;
             particles[i].velocity = Vector2.zero;
             particles[i].type = Random.Range(0, simulationParameters.usedTypes);
             particles[i].clusterId = -1;
@@ -72,6 +71,7 @@ public class SimulationManager : MonoBehaviour
         computeShader.SetInt("particleCount", simulationParameters.numParticles);
         computeShader.SetInt("numTypes", maxNumTypes);
 
+        rulesBuffer?.Release();
         rulesBuffer = new ComputeBuffer(maxNumTypes * maxNumTypes, sizeof(float));
         rulesBuffer.SetData(simulationParameters.rules);
         computeShader.SetBuffer(kernel, "Rules", rulesBuffer);

@@ -8099,7 +8099,7 @@ GameObject:
   - component: {fileID: 1894295898}
   - component: {fileID: 1894295897}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8680,20 +8680,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParticleManager
   particleRenderer: {fileID: 1029190567}
   computeShader: {fileID: 7200000, guid: b550e0118d5a8da4890145a97c2b8548, type: 3}
-  particleCount: 4000
-  worldSize: 10
-  interactionRadius: 2
-  attractionStrength: 5
-  maxSpeed: 5
-  simulationParameters:
-    numTypes: 0
-    usedTypes: 0
-    rules: []
-    numParticles: 0
-    interactionRadius: 0
-    attractionStrength: 0
-    maxSpeed: 0
-  currentUsedTypes: 10
 --- !u!4 &2015953223
 Transform:
   m_ObjectHideFlags: 0
