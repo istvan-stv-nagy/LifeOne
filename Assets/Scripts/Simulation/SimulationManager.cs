@@ -7,8 +7,6 @@ public class SimulationManager : MonoBehaviour
     private ParticleRenderer particleRenderer;
 
     public ComputeShader computeShader;
-    public int particleCount = 100;
-    public const int defaultParticleCount = 4000;
 
     public float worldSize = 10.0f;
 
@@ -37,32 +35,9 @@ public class SimulationManager : MonoBehaviour
             5f
         );
 
-        particles = new ParticleStruct[particleCount];
-
-        for (int i = 0; i < particleCount; i++)
-        {
-            particles[i].position = Random.insideUnitCircle * worldSize;
-            particles[i].velocity = Vector2.zero;
-            particles[i].type = Random.Range(0, maxNumTypes);
-            particles[i].clusterId = -1;
-        }
-
-        particleBuffer = new ComputeBuffer(particleCount, sizeof(float) * 4 + 2 * sizeof(int));
-
-        particleBuffer.SetData(particles);
-
         kernel = computeShader.FindKernel("CSMain");
 
-        computeShader.SetBuffer(kernel, "particles", particleBuffer);
-        computeShader.SetInt("particleCount", particleCount);
-        computeShader.SetInt("numTypes", maxNumTypes);
-
-        rulesBuffer = new ComputeBuffer(maxNumTypes * maxNumTypes, sizeof(float));
-        rulesBuffer.SetData(simulationParameters.rules);
-        computeShader.SetBuffer(kernel, "Rules", rulesBuffer);
-
-        particleRenderer.SetParticleComputeBuffer(particleBuffer);
-        particleRenderer.SetParticleCount(particleCount);
+        RestartSimulation();
     }
 
     void Update()
@@ -93,10 +68,15 @@ public class SimulationManager : MonoBehaviour
         particleBuffer.SetData(particles);
         computeShader.SetBuffer(kernel, "particles", particleBuffer);
 
+        computeShader.SetInt("particleCount", simulationParameters.numParticles);
+        computeShader.SetInt("numTypes", maxNumTypes);
+
+        rulesBuffer = new ComputeBuffer(maxNumTypes * maxNumTypes, sizeof(float));
+        rulesBuffer.SetData(simulationParameters.rules);
+        computeShader.SetBuffer(kernel, "Rules", rulesBuffer);
+
         particleRenderer.SetParticleComputeBuffer(particleBuffer);
         particleRenderer.SetParticleCount(simulationParameters.numParticles);
-
-        rulesBuffer.SetData(simulationParameters.rules);
     }
 
     public float[] RandomizeRules(int maxTypes, int usedTypes)
