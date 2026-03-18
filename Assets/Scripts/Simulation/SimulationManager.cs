@@ -12,9 +12,6 @@ public class SimulationManager : MonoBehaviour
 
     public float worldSize = 10.0f;
 
-    public float interactionRadius = 2f;
-    public float attractionStrength = 5f;
-    public float maxSpeed = 5f;
     public SimulationParameters simulationParameters;
 
     ComputeBuffer particleBuffer;
@@ -24,16 +21,22 @@ public class SimulationManager : MonoBehaviour
 
     public const int maxNumTypes = 10;
 
-    public int currentUsedTypes = maxNumTypes;
-
-    private float[] rules = new float[maxNumTypes * maxNumTypes];
-
     int kernel;
 
     private float simulationSpeed = 1f;
 
     void Start()
     {
+        float[] rules = RandomizeRules(maxNumTypes, maxNumTypes);
+        simulationParameters = new SimulationParameters(
+            maxNumTypes,
+            rules,
+            4000,
+            2f,
+            5f,
+            5f
+        );
+
         particles = new ParticleStruct[particleCount];
 
         for (int i = 0; i < particleCount; i++)
@@ -54,9 +57,8 @@ public class SimulationManager : MonoBehaviour
         computeShader.SetInt("particleCount", particleCount);
         computeShader.SetInt("numTypes", maxNumTypes);
 
-        RandomizeRules();
         rulesBuffer = new ComputeBuffer(maxNumTypes * maxNumTypes, sizeof(float));
-        rulesBuffer.SetData(rules);
+        rulesBuffer.SetData(simulationParameters.rules);
         computeShader.SetBuffer(kernel, "Rules", rulesBuffer);
 
         particleRenderer.SetParticleComputeBuffer(particleBuffer);
@@ -66,102 +68,70 @@ public class SimulationManager : MonoBehaviour
     void Update()
     {
         computeShader.SetFloat("deltaTime", Time.deltaTime);
-        computeShader.SetFloat("interactionRadius", interactionRadius);
-        computeShader.SetFloat("attractionStrength", attractionStrength);
-        computeShader.SetFloat("maxSpeed", maxSpeed);
+        computeShader.SetFloat("interactionRadius", simulationParameters.interactionRadius);
+        computeShader.SetFloat("attractionStrength", simulationParameters.attractionStrength);
+        computeShader.SetFloat("maxSpeed", simulationParameters.maxSpeed);
         computeShader.SetFloat("simulationSpeed", simulationSpeed);
 
-        computeShader.Dispatch(kernel, particleCount / 256 + 1, 1, 1);
+        computeShader.Dispatch(kernel, simulationParameters.numParticles / 256 + 1, 1, 1);
     }
 
-    public void RestartSimulation(int numTypesOfCells = maxNumTypes, int particlesToGenerate = defaultParticleCount)
+    public void RestartSimulation()
     {
         Debug.Log("Restarting simulation...");
-        currentUsedTypes = numTypesOfCells;
-        particles = new ParticleStruct[particlesToGenerate];
-        for (int i = 0; i < particlesToGenerate; i++)
+        particles = new ParticleStruct[simulationParameters.numParticles];
+        for (int i = 0; i < simulationParameters.numParticles; i++)
         {
             particles[i].position = Random.insideUnitCircle * worldSize;
             particles[i].velocity = Vector2.zero;
-            particles[i].type = Random.Range(0, numTypesOfCells);
+            particles[i].type = Random.Range(0, simulationParameters.usedTypes);
             particles[i].clusterId = -1;
         }
 
         particleBuffer?.Release();
-        particleBuffer = new ComputeBuffer(particlesToGenerate, sizeof(float) * 4 + 2 * sizeof(int));
+        particleBuffer = new ComputeBuffer(simulationParameters.numParticles, sizeof(float) * 4 + 2 * sizeof(int));
         particleBuffer.SetData(particles);
         computeShader.SetBuffer(kernel, "particles", particleBuffer);
 
         particleRenderer.SetParticleComputeBuffer(particleBuffer);
-        particleRenderer.SetParticleCount(particlesToGenerate);
+        particleRenderer.SetParticleCount(simulationParameters.numParticles);
 
-        rulesBuffer.SetData(rules);
+        rulesBuffer.SetData(simulationParameters.rules);
     }
 
-    public void RandomizeRules()
+    public float[] RandomizeRules(int maxTypes, int usedTypes)
     {
-        for (int i = 0; i < maxNumTypes * maxNumTypes; i++)
+        float[] newRules = new float[maxTypes * maxTypes];
+        for (int i = 0; i < maxTypes * maxTypes; i++)
         {
-            rules[i] = Random.Range(-1.0f, 1.0f);
+            newRules[i] = Random.Range(-1.0f, 1.0f);
         }
-        Debug.Log(string.Join(" ", rules));
-    }
-
-    public void SetPreset(SimulationParameters preset)
-    {
-        int numTypes = maxNumTypes;
-        SetRules(preset.rules, out numTypes);
-        Debug.Log($"This are the rules:{string.Join(" ", rules)}");
-        interactionRadius = preset.interactionRadius;
-        attractionStrength = preset.attractionStrength;
-        maxSpeed = preset.maxSpeed;
-        RestartSimulation(preset.usedTypes, preset.numParticles);
-    }
-
-    public void SetRules(float[] presetRules, out int numTypes)
-    {
-        if (presetRules.Length == maxNumTypes * maxNumTypes)
+        int idx = 0;
+        for (int r = 0; r < maxTypes; r++)
         {
-            for (int i = 0; i < maxNumTypes * maxNumTypes; i++)
-                rules[i] = presetRules[i];
-            numTypes = maxNumTypes;
-        }
-        else
-        {
-            int presetDim = (int)Mathf.Sqrt(presetRules.Length);
-            numTypes = presetDim;
-            int sourceIdx = 0;
-            int destIdx = 0;
-            for (int r = 0; r < maxNumTypes; r++)
+            for (int c = 0; c < maxTypes; c++)
             {
-                for (int c = 0; c < maxNumTypes; c++)
+                if (c >= usedTypes || r >= usedTypes)
                 {
-                    if (c >= presetDim || r >= presetDim)
-                    {
-                        rules[destIdx] = 0.0f;
-                    }
-                    else
-                    {
-                        rules[destIdx] = presetRules[sourceIdx];
-                        sourceIdx++;
-                    }
-                    destIdx++;
+                    newRules[idx] = 0.0f;
                 }
+                idx++;
             }
         }
+        return newRules;
     }
 
     public void LoadPreset(SimulationParameters preset)
     {
-        SetPreset(preset);
+        simulationParameters = preset;
+        RestartSimulation();
     }
 
-    public void SelectRandomized(int numTypes = maxNumTypes, int numParticles = 4000, float attraction = 5f, float interactionR = 2f)
+    public void SelectRandomized(int numTypes, int numParticles, float attraction, float interactionR)
     {
-        RandomizeRules();
-        attractionStrength = attraction;
-        interactionRadius = interactionR;
-        RestartSimulation(numTypes, numParticles);
+        float[] newRules = RandomizeRules(maxNumTypes, numTypes);
+        simulationParameters = new SimulationParameters(numTypes, newRules, numParticles, interactionR, attraction, 5f);
+        RestartSimulation();
     }
 
     public void SetSimulationSpeed(float selectedSpeed)
@@ -172,7 +142,7 @@ public class SimulationManager : MonoBehaviour
     public void Cluster()
     {
         particleBuffer.GetData(particles);
-        List<List<int>> clusters = Clustering.DetectClusters(particles, interactionRadius, 50);
+        List<List<int>> clusters = Clustering.DetectClusters(particles, simulationParameters.interactionRadius, 50);
 
         for (int i = 0; i < particles.Length; i++)
         {
@@ -199,42 +169,9 @@ public class SimulationManager : MonoBehaviour
         particleBuffer.SetData(particles);
     }
 
-    public float[] GetRulesZeroed()
-    {
-        float[] rules_zeroed = new float[maxNumTypes * maxNumTypes];
-        int sourceIdx = 0;
-        int destIdx = 0;
-        for (int r = 0; r < maxNumTypes; r++)
-        {
-            for (int c = 0; c < maxNumTypes; c++)
-            {
-                if (c >= currentUsedTypes || r >= currentUsedTypes)
-                {
-                    rules_zeroed[destIdx] = 0.0f;
-                }
-                else
-                {
-                    rules_zeroed[destIdx] = rules[sourceIdx];
-                    sourceIdx++;
-                }
-                destIdx++;
-            }
-        }
-        return rules_zeroed;
-    }
-
     public void SavePreset(string presetName)
     {
-        float[] rules_zeroed = GetRulesZeroed();
-        SimulationParameters newPreset = new SimulationParameters(
-            currentUsedTypes,
-            rules_zeroed,
-            particleCount,
-            interactionRadius,
-            attractionStrength,
-            maxSpeed
-        );
-        PresetDataLoader.SavePreset(newPreset, presetName);
+        PresetDataLoader.SavePreset(simulationParameters, presetName);
     }
 
     void OnDestroy()
