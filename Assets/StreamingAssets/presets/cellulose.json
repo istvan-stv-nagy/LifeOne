@@ -106,5 +106,6 @@
     "numParticles": 4000,
     "interactionRadius": 2.0,
     "attractionStrength": 5.0,
-    "maxSpeed": 5.0
+    "maxSpeed": 5.0,
+    "worldSize": 10.0
 }

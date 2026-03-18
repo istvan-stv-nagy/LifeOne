@@ -10,8 +10,9 @@ public class SimulationParameters
     public float interactionRadius;
     public float attractionStrength;
     public float maxSpeed;
+    public float worldSize;
 
-    public SimulationParameters(int _usedTypes, float[] _rules, int _numParticles, float _interactionRadius, float _attractionStrength, float _maxSpeed)
+    public SimulationParameters(int _usedTypes, float[] _rules, int _numParticles, float _interactionRadius, float _attractionStrength, float _maxSpeed, float _worldSize)
     {
         usedTypes = _usedTypes;
         numTypes = (int)Mathf.Sqrt(_rules.Length);
@@ -21,5 +22,6 @@ public class SimulationParameters
         interactionRadius = _interactionRadius;
         attractionStrength = _attractionStrength;
         maxSpeed = _maxSpeed;
+        worldSize = _worldSize;
     }
 }

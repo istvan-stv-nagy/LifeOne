@@ -32,7 +32,8 @@ public class SimulationManager : MonoBehaviour
             4000,
             2f,
             5f,
-            5f
+            5f,
+            10.0f
         );
 
         kernel = computeShader.FindKernel("CSMain");
@@ -110,7 +111,7 @@ public class SimulationManager : MonoBehaviour
     public void SelectRandomized(int numTypes, int numParticles, float attraction, float interactionR)
     {
         float[] newRules = RandomizeRules(maxNumTypes, numTypes);
-        simulationParameters = new SimulationParameters(numTypes, newRules, numParticles, interactionR, attraction, 5f);
+        simulationParameters = new SimulationParameters(numTypes, newRules, numParticles, interactionR, attraction, 5f, 10f);
         RestartSimulation();
     }
 
