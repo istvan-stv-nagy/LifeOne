@@ -199,11 +199,36 @@ public class SimulationManager : MonoBehaviour
         particleBuffer.SetData(particles);
     }
 
+    public float[] GetRulesZeroed()
+    {
+        float[] rules_zeroed = new float[maxNumTypes * maxNumTypes];
+        int sourceIdx = 0;
+        int destIdx = 0;
+        for (int r = 0; r < maxNumTypes; r++)
+        {
+            for (int c = 0; c < maxNumTypes; c++)
+            {
+                if (c >= currentUsedTypes || r >= currentUsedTypes)
+                {
+                    rules_zeroed[destIdx] = 0.0f;
+                }
+                else
+                {
+                    rules_zeroed[destIdx] = rules[sourceIdx];
+                    sourceIdx++;
+                }
+                destIdx++;
+            }
+        }
+        return rules_zeroed;
+    }
+
     public void SavePreset(string presetName)
     {
+        float[] rules_zeroed = GetRulesZeroed();
         SimulationParameters newPreset = new SimulationParameters(
             currentUsedTypes,
-            rules,
+            rules_zeroed,
             particleCount,
             interactionRadius,
             attractionStrength,

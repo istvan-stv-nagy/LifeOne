@@ -10,6 +10,16 @@ public class PresetDropdown : MonoBehaviour
 
     void Start()
     {
+        UpdatePresetList();
+    }
+
+    public string GetText()
+    {
+        return dropdown.captionText.text;
+    }
+
+    public void UpdatePresetList()
+    {
         List<string> presetNames = new List<string>();
 
         string[] files = Directory.GetFiles(Path.Combine(Application.persistentDataPath, "presets"), "*.json");

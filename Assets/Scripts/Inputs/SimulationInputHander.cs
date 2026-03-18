@@ -27,7 +27,7 @@ public class SimulationInputHander : MonoBehaviour
     private TMP_InputField presetNameField;
 
     [SerializeField]
-    private TMP_Dropdown presetDropdown;
+    private PresetDropdown presetDropdown;
 
     private SimulationControls controls;
 
@@ -70,11 +70,12 @@ public class SimulationInputHander : MonoBehaviour
     public void OnSavePreset()
     {
         simulationManager.SavePreset(presetNameField.text);
+        presetDropdown.UpdatePresetList();
     }
 
     public void OnLoadPreset()
     {
-        string selectedPresetName = presetDropdown.captionText.text;
+        string selectedPresetName = presetDropdown.GetText();
         SimulationParameters preset = PresetDataLoader.LoadPreset(selectedPresetName);
         simulationManager.LoadPreset(preset);
     }

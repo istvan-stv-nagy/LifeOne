@@ -5716,7 +5716,7 @@ MonoBehaviour:
   attractionSlider: {fileID: 237435403}
   interactionRadiusSlider: {fileID: 1541437512}
   presetNameField: {fileID: 631823311}
-  presetDropdown: {fileID: 2087138574}
+  presetDropdown: {fileID: 2087138577}
 --- !u!4 &1116630332
 Transform:
   m_ObjectHideFlags: 0
@@ -8685,6 +8685,14 @@ MonoBehaviour:
   interactionRadius: 2
   attractionStrength: 5
   maxSpeed: 5
+  simulationParameters:
+    numTypes: 0
+    usedTypes: 0
+    rules: []
+    numParticles: 0
+    interactionRadius: 0
+    attractionStrength: 0
+    maxSpeed: 0
   currentUsedTypes: 10
 --- !u!4 &2015953223
 Transform:
